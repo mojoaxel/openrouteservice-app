@@ -78,7 +78,7 @@ cp app/weathercheck.default.txt app/weathercheck.txt
 vim app/weathercheck.txt
 ```
 
-## Run openrouteservice:	
+## Run openrouteservice:
 
 For the standard openrouteservice version do:
 
@@ -120,7 +120,7 @@ If there are further questions, please let us know!
 
 (The MIT License)
 
-Copyright (c) 2017 GIScience Research Group, Heidelberg University.
+Copyright (c) 2018 GIScience Research Group, Heidelberg University.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the 'Software'), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 

@@ -234,21 +234,20 @@ module.exports = function(grunt) {
                     }
                 },
             },
-            ors: {
+            catastrophy: {
                 options: {
                     dest: 'app/js/config.js'
                 },
                 constants: {
                     ENV: {
-                        name: 'production',
-                        geocoding: 'https://api.openrouteservice.org/geocoding',
-                        routing: 'https://api.openrouteservice.org/directions',
-                        analyse: 'https://api.openrouteservice.org/isochrones',
-                        places: 'https://api.openrouteservice.org/places',
+                        name: 'catastrophy',
+                        geocoding: 'https://disaster-api.openrouteservice.org/disaster1/geocode', //for address search requests
+                        routing: 'https://disaster-api.openrouteservice.org/disaster1/routes', //for routing requests
+                        analyse: 'https://disaster-api.openrouteservice.org/disaster1/isochrones', //for accessibility analysis requests
                         shortenlink: 'https://api-ssl.bitly.com/v3/shorten'
                     }
-                }
-            }
+                },
+            },
         },
         stripDebug: {
             dist: {
@@ -299,7 +298,7 @@ module.exports = function(grunt) {
             }
         }
     });
-    grunt.registerTask('ors', 'Compiles all of the assets and copies the files to the build directory.',    ['browserify:turf', 'less:development', 'copy:sliderLess', 'grunt:sliderMakeCss', 'ngtemplates', 'clean:task_rm_build', 'copy:build', 'ngconstant:ors', 'traceur', 'useminPrepare', 'concat', 'copy:libs', 'uglify', 'cssmin', 'usemin', 'preprocess', 'tags', 'clean:task_rm_build_unused', 'stripDebug', 'cacheBust', 'connect:build:keepalive']);
-    grunt.registerTask('dev', 'Run local server for development purposes', ['less:development', 'copy:sliderLess', 'grunt:sliderMakeCss', 'browserify:turf', 'ngtemplates', 'ngconstant:ors', 'connect:dev', 'watch']);
+    grunt.registerTask('disaster', 'Compiles all of the assets and copies the files to the build directory.',    ['browserify:turf', 'less:development', 'copy:sliderLess', 'grunt:sliderMakeCss', 'ngtemplates', 'clean:task_rm_build', 'copy:build', 'ngconstant:catastrophy', 'traceur', 'useminPrepare', 'concat', 'copy:libs', 'uglify', 'cssmin', 'usemin', 'preprocess', 'tags', 'clean:task_rm_build_unused', 'stripDebug', 'cacheBust', 'connect:build:keepalive']);
     grunt.registerTask('ors_local', 'Run local ors frontend server on local ors backend tomcat', ['less:development', 'copy:sliderLess', 'grunt:sliderMakeCss', 'browserify:turf', 'ngtemplates', 'ngconstant:local', 'connect:dev', 'watch']);
+    grunt.registerTask('catastrophy', 'Run local diasaster server', ['less:development', 'copy:sliderLess', 'grunt:sliderMakeCss', 'browserify:turf', 'ngtemplates', 'ngconstant:catastrophy', 'connect:dev', 'watch']);
 };

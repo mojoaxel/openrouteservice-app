@@ -650,6 +650,13 @@ angular.module('orsApp')
                     weight: w,
                     opacity: o
                 };
+            },
+            boundary: function() {
+                return {
+                    "fillColor": "#000",
+                    "opacity": 0.0,
+                    "fillOpacity": 0.6
+                };
             }
         },
         isochronesColorsRanges: [

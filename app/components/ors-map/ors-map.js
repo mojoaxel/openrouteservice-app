@@ -6,7 +6,7 @@ angular.module('orsApp').directive('orsMap', () => {
             orsMap: '='
         },
         link: (scope, element, attrs) => {},
-        controller: ['$scope', '$filter', '$compile', '$timeout', '$window', 'orsSettingsFactory', 'orsLocationsService', 'orsObjectsFactory', 'orsRequestService', 'orsUtilsService', 'orsMapFactory', 'orsCookiesFactory', 'lists', 'globals', 'mappings', 'orsNamespaces', ($scope, $filter, $compile, $timeout, $window, orsSettingsFactory, orsLocationsService, orsObjectsFactory, orsRequestService, orsUtilsService, orsMapFactory, orsCookiesFactory, lists, globals, mappings, orsNamespaces) => {
+        controller: ['$scope', '$filter', '$compile', '$timeout', '$window', 'orsSettingsFactory',  'orsObjectsFactory', 'orsRequestService', 'orsUtilsService', 'orsMapFactory', 'orsCookiesFactory', 'lists', 'globals', 'mappings', 'orsNamespaces', 'ENV', ($scope, $filter, $compile, $timeout, $window, orsSettingsFactory, orsObjectsFactory, orsRequestService, orsUtilsService, orsMapFactory, orsCookiesFactory, lists, globals, mappings, orsNamespaces, ENV) => {
             $scope.translateFilter = $filter('translate');
             const mapsurfer = L.tileLayer(orsNamespaces.layerMapSurfer.url, {
                 attribution: orsNamespaces.layerMapSurfer.attribution,
@@ -59,24 +59,44 @@ angular.module('orsApp').directive('orsMap', () => {
                 layerRouteNumberedMarkers: L.featureGroup(),
                 layerRouteExtras: L.featureGroup(),
                 layerRouteDrag: L.featureGroup(),
-                layerLocations: new L.MarkerClusterGroup({
-                    showCoverageOnHover: false,
-                    disableClusteringAtZoom: 14,
-                    spiderLegPolylineOptions: {
-                        weight: 1.5,
-                        color: '#222',
-                        opacity: 0.5, // for defaults
-                        distanceMarkers: {
-                            lazy: true
-                        }, // for hiding the markers
-                    }
-                }),
-                layerTmcMarker: L.featureGroup()
+                layerTmcMarker: L.featureGroup(),
+                layerDisasterBoundaries: L.featureGroup()
             };
+
+
+            const request = orsUtilsService.getDorsConfig();
+            request.promise.then(function(response) {
+                $scope.dors_config = response;
+                let i = 0;
+                angular.forEach($scope.dors_config, function(value, key){
+                    if (i === 0) {
+                        value.checked = true;
+                    } else {
+                        value.checked = false;
+                    }
+                    i = i + 1;
+                });
+                $scope.selectedRegion = {
+                    selected: $scope.dors_config[Object.keys($scope.dors_config)[0]].instance
+                };
+                let dArea = L.geoJSON($scope.dors_config[$scope.selectedRegion.selected].geojson, {
+                    invert: true,
+                    worldLatLngs: [L.latLng([85, 360]), L.latLng([85, -360]), L.latLng([-85, -360]), L.latLng([-85, 360])],
+                    style: lists.layerStyles.boundary()
+                });
+                $scope.orsMap.setMaxBounds(L.geoJSON($scope.dors_config[$scope.selectedRegion.selected].geojson).getBounds());
+                $scope.orsMap.fitBounds(L.geoJSON($scope.dors_config[$scope.selectedRegion.selected].geojson).getBounds());
+                dArea.addTo($scope.geofeatures.layerDisasterBoundaries);
+                $scope.mapModel.map.addControl($scope.disasterSwitcher);
+            }, function(response) {
+                console.error(response);
+            });
+
             $scope.mapModel = {
                 map: $scope.orsMap,
                 geofeatures: $scope.geofeatures
             };
+
             $scope.locateControl = L.control.locate({
                 locateOptions: {
                     enableHighAccuracy: true,
@@ -86,23 +106,33 @@ angular.module('orsApp').directive('orsMap', () => {
                     }
                 }
             }).addTo($scope.mapModel.map);
-            /* HEIGHTGRAPH CONTROLLER */
-            $scope.hg = L.control.heightgraph({
-                width: 800,
-                height: 280,
-                margins: {
-                    top: 10,
-                    right: 30,
-                    bottom: 55,
-                    left: 50
-                },
-                position: "bottomright",
-                mappings: mappings
-            });
             $scope.zoomControl = new L.Control.Zoom({
                 position: 'topright'
             }).addTo($scope.mapModel.map);
             L.control.scale().addTo($scope.mapModel.map);
+            // disaster region switcher
+            $scope.disasterSwitcher = L.control({
+                position: 'bottomright'
+            });
+            $scope.switchRegions = () => {
+                const region = $scope.selectedRegion.selected;
+                $scope.geofeatures.layerDisasterBoundaries.clearLayers();
+                let dArea = L.geoJSON($scope.dors_config[region].geojson, {
+                    invert: true,
+                    style: lists.layerStyles.boundary()
+                });
+                dArea.addTo($scope.geofeatures.layerDisasterBoundaries);
+
+                ENV.geocoding = orsNamespaces.disasterServicesRouting[region].geocoding; //for address search requests
+                ENV.routing = orsNamespaces.disasterServicesRouting[region].routing; //for routing requests
+                ENV.analyse = orsNamespaces.disasterServicesRouting[region].isochrones; //for accessibility analysis requests
+                $scope.orsMap.setMaxBounds(L.geoJSON($scope.dors_config[$scope.selectedRegion.selected].geojson).getBounds());
+                $scope.orsMap.fitBounds(L.geoJSON($scope.dors_config[region].geojson).getBounds());
+            };
+            $scope.disasterSwitcher.onAdd = function(map) {
+                var div = $compile('<ors-disaster-list></ors-disaster-list>')($scope)[0];
+                return div;
+            };
             /* AVOID AREA CONTROLLER */
             L.NewPolygonControl = L.Control.extend({
                 options: {
@@ -159,8 +189,8 @@ angular.module('orsApp').directive('orsMap', () => {
                         lng: settings.lng
                     }, settings.zoom);
                 } else {
-                    // Heidelberg
-                    $scope.orsMap.setView([49.409445, 8.692953], 13);
+                    // Africa Bounding Box
+                    $scope.orsMap.setView([21.445313, 5.441022], 5);
                     if (orsCookiesFactory.getMapOptions()) {
                         // Welcome box
                         $scope.welcomeMsgBox = L.control({
@@ -170,9 +200,9 @@ angular.module('orsApp').directive('orsMap', () => {
                             var div = $compile('<ors-welcome-box></ors-welcome-box>')($scope)[0];
                             return div;
                         };
-                        $timeout(function() {
-                            if (!$scope.smallScreen) $scope.mapModel.map.addControl($scope.welcomeMsgBox);
-                        }, 500);
+                        // $timeout(function() {
+                        //     if (!$scope.smallScreen) $scope.mapModel.map.addControl($scope.welcomeMsgBox);
+                        // }, 500);
                     }
                 }
                 mapInitSubject.dispose();
@@ -185,23 +215,18 @@ angular.module('orsApp').directive('orsMap', () => {
                 var div = $compile('<ors-signup-box></ors-signup-box>')($scope)[0];
                 return div;
             };
-            $timeout(function() {
-                if (!$scope.smallScreen) $scope.mapModel.map.addControl($scope.signupBox);
-            }, 500);
+            // $timeout(function() {
+            //     if (!$scope.smallScreen) $scope.mapModel.map.addControl($scope.signupBox);
+            // }, 500);
             // brand
             $scope.brand = L.control({
-                position: 'topleft'
+                position: 'topleft',
+                bubblingMouseEvents: true
             });
             $scope.brand.onAdd = function(map) {
-                if ($scope.smallScreen) {
-                    var divs = L.DomUtil.create('div', 'ors-brand-small');
-                    divs.innerHTML = '<a href="http://www.geog.uni-heidelberg.de/gis/heigit.html" target="_blank"><img src="img/brand.png"></a>';
-                    return divs;
-                } else {
-                    var div = L.DomUtil.create('div', 'ors-brand');
-                    div.innerHTML = '<a href="http://www.geog.uni-heidelberg.de/gis/heigit.html" target="_blank"><img src="img/brand.png"></a>';
-                    return div;
-                }
+                var divs = L.DomUtil.create('div', 'ors-brand-small');
+                divs.innerHTML = '<img src="img/brand.png">';
+                return divs;
             };
             $timeout(function() {
                 $scope.mapModel.map.addControl($scope.brand);
@@ -237,7 +262,7 @@ angular.module('orsApp').directive('orsMap', () => {
                 orsSettingsFactory.setAvoidableAreas(avoidPolygons);
             };
             const shapeDrawn = function(e) {
-                //$scope.layerControls.addOverlay($scope.geofeatures.layerAvoid, 'Avoidable regions');
+                $scope.layerControls.addOverlay($scope.geofeatures.layerAvoid, 'Avoidable regions');
                 setSettings();
             };
             $scope.baseLayers = {
@@ -268,8 +293,8 @@ angular.module('orsApp').directive('orsMap', () => {
                 $scope.mapModel.geofeatures.layerEmph.addTo($scope.mapModel.map);
                 $scope.mapModel.geofeatures.layerTracks.addTo($scope.mapModel.map);
                 $scope.mapModel.geofeatures.layerRouteExtras.addTo($scope.mapModel.map);
-                $scope.mapModel.geofeatures.layerLocations.addTo($scope.mapModel.map);
                 $scope.mapModel.geofeatures.layerRouteDrag.addTo($scope.mapModel.map);
+                $scope.mapModel.geofeatures.layerDisasterBoundaries.addTo($scope.mapModel.map);
                 // add layer control
                 $scope.layerControls = L.control.layers($scope.baseLayers, $scope.overlays).addTo($scope.mapModel.map);
                 $scope.mapModel.map.editTools.featuresLayer = $scope.geofeatures.layerAvoid;
@@ -307,7 +332,7 @@ angular.module('orsApp').directive('orsMap', () => {
                 minWidth: 150,
                 closeButton: false,
                 className: 'cm-popup'
-            });
+            }).bringToFront();
             $scope.pointPopup = L.popup({
                 minWidth: 175,
                 maxHeight: 300,
@@ -514,78 +539,7 @@ angular.module('orsApp').directive('orsMap', () => {
                 });
                 wayPointMarker.addTo($scope.mapModel.geofeatures[actionPackage.layerCode]);
             };
-            $scope.highlightPoi = (actionPackage) => {
-                let locationsIcon = L.divIcon(lists.locationsIconHighlight);
-                locationsIcon.options.html = lists.locations_icons[$scope.subcategoriesLookup[parseInt(actionPackage.style)]];
-                let locationsMarker = L.marker(actionPackage.geometry, {
-                    icon: locationsIcon
-                });
-                locationsMarker.addTo($scope.mapModel.geofeatures[actionPackage.layerCode]);
-            };
-            $scope.addLocations = (actionPackage) => {
-                //$scope.layerControls.addOverlay($scope.geofeatures.layerLocations, 'Locations');
-                $scope.subcategoriesLookup = orsLocationsService.getSubcategoriesLookup();
-                $scope.mapModel.geofeatures[actionPackage.layerCode].clearLayers();
-                const highlightFeature = (e) => {
-                    // const layer = e.target;
-                    // let locationsIconHighlight = L.divIcon(lists.locationsIconHighlight);
-                    // locationsIconHighlight.options.html = lists.locations_icons[$scope.subcategoriesLookup[parseInt(layer.feature.properties.category)]];
-                    // layer.setIcon(locationsIconHighlight);
-                };
-                const resetHighlight = (e) => {
-                    // const layer = e.target;
-                    // let locationsIconHighlightReset = L.divIcon(lists.locationsIcon);
-                    // locationsIconHighlightReset.options.html = lists.locations_icons[$scope.subcategoriesLookup[parseInt(layer.feature.properties.category)]];
-                    // layer.setIcon(locationsIconHighlightReset);
-                };
-                const onEachFeature = (feature, layer) => {
-                    layer.on({
-                        mouseover: highlightFeature,
-                        mouseout: resetHighlight
-                    });
-                    let popupContent = '';
-                    if (feature.properties.name) popupContent += '<strong>' + feature.properties.name + '</strong><br>';
-                    if (feature.properties.address) {
-                        popupContent += lists.locations_icons.address + ' ';
-                        if (feature.properties.address.street) popupContent += feature.properties.address.street + ', ';
-                        if (feature.properties.address.house_number) popupContent += feature.properties.address.house_number + ', ';
-                        if (feature.properties.address.postal_code) popupContent += feature.properties.address.postal_code + ', ';
-                        if (feature.properties.address.locality) popupContent += feature.properties.address.locality + ', ';
-                        if (feature.properties.address.region) popupContent += feature.properties.address.region + ', ';
-                        if (feature.properties.address.country) popupContent += feature.properties.address.country + ', ';
-                        popupContent = popupContent.slice(0, -2);
-                    }
-                    if (feature.properties.phone) popupContent += '<br>' + lists.locations_icons.phone + ' ' + feature.properties.phone;
-                    if (feature.properties.website) popupContent += '<br>' + lists.locations_icons.website + ' ' + '<a href="' + feature.properties.website + '" target=_blank>' + feature.properties.website + '</a>';
-                    if (feature.properties.wheelchair) popupContent += '<br>' + lists.locations_icons.wheelchair;
-                    if (feature.properties.osm_type == 1) {
-                        popupContent += '<br><br><a href="http://www.openstreetmap.org/node/' + feature.properties.osm_id + '" target=_blank>Edit on OpenStreetMap</a>';
-                    } else if (feature.properties.osm_type == 2) {
-                        popupContent += '<br><br><a href="http://www.openstreetmap.org/way/' + feature.properties.osm_id + '" target=_blank>Edit on OpenStreetMap</a>';
-                    } else {
-                        popupContent += '<br><br><a href="http://www.openstreetmap.org/relation/' + feature.properties.osm_id + '" target=_blank>Edit on OpenStreetMap</a>';
-                    }
-                    popupContent += '<br>Source: © OpenStreetMap-Contributors';
-                    layer.bindPopup(popupContent, {
-                        className: 'location-popup'
-                    });
-                };
-                let geojson = L.geoJson(actionPackage.geometry, {
-                    pointToLayer: function(feature, latlng) {
-                        // let locationsIcon = L.icon({
-                        //     iconUrl: '/bower_components/Font-Awesome-SVG-PNG/black/png/22/btc.png',
-                        //     iconSize: [22, 22], // size of the icon
-                        // });
-                        let locationsIcon = L.divIcon(lists.locationsIcon);
-                        locationsIcon.options.html = lists.locations_icons[$scope.subcategoriesLookup[parseInt(feature.properties.category)]];
-                        return L.marker(latlng, {
-                            icon: locationsIcon
-                        });
-                    },
-                    onEachFeature: onEachFeature
-                }).addTo($scope.mapModel.geofeatures[actionPackage.layerCode]);
-            };
-            /** 
+            /**
              * adds features to specific layer
              * @param {Object} actionPackage - The action actionPackage
              */
@@ -892,335 +846,12 @@ angular.module('orsApp').directive('orsMap', () => {
                     orsMessagingService.messageSubject.onNext(lists.errors.GEOCODE);
                 });
             };
-            $scope.locationsControl = () => {
-                return L.control.angular({
-                    position: 'topright',
-                    template: `
-                     <a ng-click="show = !show" class="leaflet-locations">
-                     </a>
-                     <div ng-show="show" class="locations">
-                        <div>
-                            <div class="categories" ng-show="!showSubcategories">
-                                <div class="c-nav">
-                                    <div>
-                                        <div>Locations</div>
-                                    </div>
-                                    <div>
-                                        <div ng-click="clearLocations()">
-                                                <i class="fa fa-trash"></i>
-                                        </div>
-                                        <div ng-click="show = !show">
-                                            <i class="fa fa-remove"></i>
-                                        </div>
-                                    </div>
-                                    
-                                </div>
-                                <div class="c-list">
-                                    <div class="ui grid">
-                                      <div class="four wide column category" ng-repeat="(category, obj) in categories" ng-click="toggleSubcategories(category)">
-                                        <div tooltip-side="top" tooltip-template="{{(obj.name | translate)}}" tooltips="" ng-bind-html="categoryIcons[category]">
-                                        </div>
-                                        <div class="category-checkbox">
-                                            <input type="checkbox" ng-model="obj.selected" ng-click="setSubcategories(category); $event.stopPropagation();" indeterminate/>
-                                            <!--{{obj.selected}}-->    
-                                        </div>
-                                      </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="sub-categories" ng-show="showSubcategories">
-                                <div class="sc-nav">
-                                    <div ng-click="toggleSubcategories()">
-                                        <i class="fa fa-lg fa-arrow-left"></i>
-                                    </div>
-                                    <div>
-                                        <div class="ui compact menu">
-                                          <div class="ui simple dropdown item">
-                                            Categories
-                                            <i class="dropdown icon"></i>
-                                            <div class="menu">
-                                              <div class="item" ng-repeat="(category, obj) in categories" ng-click="selectCategory(category);">{{obj.name}}</div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="sc-list">
-                                    <ul>
-                                        <li ng-repeat="(scId, scObj) in categories[selectedCategoryId].subCategories">
-                                            <div class="ui checkbox">
-                                                <input id="{{scId}}" name="subcategory" ng-click="verifySubcategory(selectedCategoryId)" ng-model="scObj.selected" type="checkbox">
-                                                    <label for="{{scId}}" ng-bind-html="(scObj.name | translate)">
-                                                    </label>
-                                                </input>
-                                            </div>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="search-input">
-                           <div class="ui fluid action input">
-                                <input ng-model="namefilter" placeholder="{{getPlaceholder()}}" select-on-click="" type="text">  
-                                </input>
-                                <div ng-class="{'ui primary button': !loading, 'ui primary loading button': loading, 'ui primary disabled button': disabled}" ng-click="callLocations();">Search</div>
-                            </div>
-                        </div>
-                        <div class="result-list" ng-show="results.length > 0">
-                             <div class="poi-header">
-                                <div>
-                                     <div ng-click="showResults = !showResults">
-                                        <i ng-class="showResults ? 'fa fa-window-minimize' : 'fa fa-expand'"></i>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div ng-bind-html="('DETAILS' | translate)"></div>
-                                    <div ng-bind-html="'OSM'"></div>
-                                </div>
-                            </div>
-                            <div class="poi-items" ng-show="showResults">
-                                <div class="poi-item" ng-repeat="feature in results" ng-click="panTo(feature.geometry.coordinates);" ng-mouseout="DeEmphPoi();" ng-mouseover="EmphPoi(feature.geometry.coordinates, feature.properties.category);">
-                                    <div class="poi-row">
-                                        <div class="icon" ng-bind-html='categoryIcons[subcategoriesLookup[feature.properties.category]]'></div>
-                                        <div class="text" ng-bind-html='feature.properties.name'></div>   
-                                        <div class="icon pointer" ng-click="poiDetails = !poiDetails; $event.stopPropagation();" ng-show='feature.properties.address || feature.properties.phone || feature.properties.wheelchair || feature.properties.website'>
-                                            <i ng-class="getClass(poiDetails)" >
-                                            </i>
-                                        </div>
-                                        <div class="icon pointer">
-                                            <a target="_blank" ng-href="{{makeUrl(feature.properties.osm_id)}}">
-                                                <i class="fa fa-map">
-                                                </i>
-                                            </a> 
-                                        </div>
-                                    </div>                                  
-                                    <div class="collapsable poi-details" ng-class="{ showMe: poiDetails }">    
-                                        <div class="poi-row" ng-if="feature.properties.address">
-                                            <div class="icon">
-                                                <i class="fa fa-address-card"></i>
-                                            </div>
-                                            <div class="text">
-                                                <span ng-if=feature.properties.address.street ng-bind-html="feature.properties.address.street + ', '"></span>
-                                                <span ng-if=feature.properties.address.house_number ng-bind-html="feature.properties.address.house_number + ', '"></span>
-                                                <span ng-if=feature.properties.address.postal_code ng-bind-html="feature.properties.address.postal_code + ', '"></span>
-                                                <span ng-if=feature.properties.address.locality ng-bind-html="feature.properties.address.locality + ', '"></span>
-                                                <span ng-if=feature.properties.address.region ng-bind-html="feature.properties.address.region + ', '"></span>
-                                                <span ng-if=feature.properties.address.country ng-bind-html="feature.properties.address.country"></span>
-                                            </div>                                        
-                                        </div>
-                                         <div class="poi-row" ng-if="feature.properties.phone">
-                                            <div class="icon">
-                                                <i class="fa fa-phone"></i>
-                                            </div>
-                                            <div class="text" ng-bind-html='feature.properties.phone'></div>                                        
-                                        </div>
-                                         <div class="poi-row" ng-if="feature.properties.website">
-                                            <div class="icon">
-                                                <i class="fa fa-globe"></i>
-                                            </div> 
-                                            <div class="text" ng-bind-html="feature.properties.website">
-                                            </div>
-                                        </div>
-                                        <div class="poi-row" ng-if="feature.properties.wheelchair">
-                                             <div ng-if="feature.properties.wheelchair">
-                                                <i class="fa fa-wheelchair-alt"></i>
-                                            </div>                                       
-                                        </div> 
-                                    </div> 
-                                    
-                                </div>
-                            </div>     
-                        </div>
-                     </div>
-                     `,
-                    controllerAs: 'leaflet',
-                    controller: function($scope, $element, $map, lists, orsUtilsService, orsLocationsService, $timeout) {
-                        console.log('leleleelrle')
-                        $scope.getClass = (bool) => {
-                            if (bool === true) return "fa fa-minus";
-                            else return "fa fa-plus";
-                        };
-                        $scope.makeUrl = (osmId) => {
-                            return "http://www.openstreetmap.org/node/" + osmId;
-                        };
-                        $scope.clearLocations = () => {
-                            $scope.results = [];
-                            orsLocationsService.clearLocationsToMap();
-                        };
-                        $scope.callLocations = () => {
-                            $scope.loading = true;
-                            let settings = {
-                                categories: [],
-                                subCategories: []
-                            };
-                            angular.forEach($scope.categories, function(cObj, index) {
-                                if (cObj.selected === true) {
-                                    settings.categories.push(index);
-                                }
-                                if (cObj.selected.length === 0) {
-                                    angular.forEach(cObj.subCategories, function(scObj, index) {
-                                        console.log(scObj);
-                                        if (scObj.selected) {
-                                            console.log(index);
-                                            settings.subCategories.push(index);
-                                        }
-                                    });
-                                }
-                            });
-                            if ($scope.namefilter && $scope.namefilter.length > 0) settings.nameFilter = $scope.namefilter;
-                            settings.bbox = $map.getBounds().toBBoxString();
-                            orsLocationsService.clear();
-                            const payload = orsUtilsService.locationsPayload(settings);
-                            const request = orsLocationsService.fetchLocations(payload);
-                            orsLocationsService.requests.push(request);
-                            request.promise.then(function(response) {
-                                orsLocationsService.addLocationsToMap(response);
-                                $scope.results = response.features;
-                                $scope.showResults = true;
-                                $scope.loading = false;
-                            }, function(response) {
-                                console.error(response);
-                                $scope.loading = false;
-                            });
-                        };
-                        $scope.categoryIcons = lists.locations_icons;
-                        $scope.getPlaceholder = () => {
-                            // get set lang
-                            return 'Optional filter, e.g. shell*';
-                        };
-                        $scope.selectCategory = (id) => {
-                            $scope.selectedCategoryId = id;
-                        };
-                        $scope.verifySubcategory = (selectedCategoryId) => {
-                            let cnt = 0;
-                            angular.forEach($scope.categories[selectedCategoryId].subCategories, (subCategoryObj, subCategoryId) => {
-                                if (subCategoryObj.selected) cnt += 1;
-                            });
-                            const scLength = Object.keys($scope.categories[selectedCategoryId].subCategories).length;
-                            if (cnt == scLength) {
-                                $scope.categories[selectedCategoryId].selected = true;
-                                $scope.isIntermediate = false;
-                            } else if (cnt > 0 && cnt < scLength) {
-                                $scope.categories[selectedCategoryId].selected = '';
-                                $scope.isIntermediate = true;
-                            } else {
-                                $scope.categories[selectedCategoryId].selected = false;
-                                $scope.isIntermediate = false;
-                            }
-                            // wait for intermediate directive to execute, next cycle
-                            $timeout(function() {
-                                $scope.isAnySelected();
-                            }, 0);
-                        };
-                        $scope.setSubcategories = function(categoryId) {
-                            angular.forEach($scope.categories[categoryId].subCategories, (subCategoryObj, subCategoryId) => {
-                                if ($scope.isIntermediate) {
-                                    subCategoryObj.selected = false;
-                                } else {
-                                    subCategoryObj.selected = $scope.categories[categoryId].selected;
-                                }
-                            });
-                            $scope.isIntermediate = false;
-                            // wait for intermediate directive to execute, next cycle
-                            $timeout(function() {
-                                $scope.isAnySelected();
-                            }, 0);
-                        };
-                        //10 seconds delay
-                        $scope.isAnySelected = () => {
-                            let active = false;
-                            angular.forEach($scope.categories, (categoryObj, categoryName) => {
-                                if (categoryObj.selected || categoryObj.selected.length === 0) {
-                                    active = true;
-                                }
-                            });
-                            if (active) $scope.disabled = false;
-                            else $scope.disabled = true;
-                        };
-                        $scope.toggleSubcategories = function(categoryId) {
-                            if (categoryId) $scope.selectedCategoryId = categoryId;
-                            $scope.showSubcategories = $scope.showSubcategories === true ? false : true;
-                        };
-                        $scope.EmphPoi = (geometry, category) => {
-                            if ($map.getZoom() >= 14) orsLocationsService.emphPoi(geometry, category);
-                        };
-                        $scope.DeEmphPoi = () => {
-                            orsLocationsService.DeEmphPoi();
-                        };
-                        $scope.panTo = (geometry) => {
-                            orsLocationsService.panTo(geometry);
-                        };
-                        $scope.onInit = () => {
-                            $scope.loading = true;
-                            const payload = orsUtilsService.locationsCategoryPayload();
-                            const request = orsLocationsService.fetchLocations(payload);
-                            request.promise.then(function(response) {
-                                // intermediate state is needed as we are using a tri-state checkbox
-                                $scope.loading = $scope.showSubcategories = $scope.isIntermediate = false;
-                                $scope.show = $scope.disabled = false;
-                                $scope.categories = {};
-                                $scope.subcategoriesLookup = {};
-                                angular.forEach(response.categories, (categoryObj, categoryName) => {
-                                    let subCategories = {};
-                                    angular.forEach(categoryObj.values, (subCategoryId, subCategoryName) => {
-                                        $scope.subcategoriesLookup[subCategoryId] = categoryObj.id;
-                                        subCategories[subCategoryId] = {
-                                            name: subCategoryName,
-                                            selected: false,
-                                        };
-                                    });
-                                    $scope.categories[categoryObj.id] = {
-                                        name: categoryName,
-                                        selected: false,
-                                        subCategories: subCategories
-                                    };
-                                });
-                                orsLocationsService.setSubcategoriesLookup($scope.subcategoriesLookup);
-                            }, function(response) {
-                                console.error(response);
-                                $scope.loading = false;
-                            });
-                        };
-                        $scope.onInit();
-                    }
-                });
-            };
-            // add locations control
-            $timeout(function() {
-                if (!$scope.smallScreen) {
-                    $scope.mapModel.map.addControl($scope.locationsControl());
-                    const lControl = angular.element(document.querySelector('.angular-control-leaflet')).addClass('leaflet-bar')[0];
-                    if (!L.Browser.touch) {
-                        L.DomEvent.disableClickPropagation(lControl).disableScrollPropagation(lControl);
-                    } else {
-                        L.DomEvent.disableClickPropagation(lControl).disableScrollPropagation(lControl);
-                    }
-                }
-            }, 500);
             /**
              * Dispatches all commands sent by Mapservice by using id and then performing the corresponding function
              */
             orsMapFactory.subscribeToMapFunctions(function onNext(params) {
                 switch (params._actionCode) {
                     case -1:
-                        if (!$scope.smallScreen) {
-                            $scope.hg.options.expand = globals.showHeightgraph;
-                            $scope.mapModel.map.addControl($scope.hg);
-                            const toggle = angular.element(document.querySelector('.heightgraph-toggle-icon'));
-                            const close = angular.element(document.querySelector('.heightgraph-close-icon'));
-                            toggle.bind('click', function(e) {
-                                globals.showHeightgraph = true;
-                            });
-                            close.bind('click', function(e) {
-                                globals.showHeightgraph = false;
-                            });
-                            if (params._package.geometry) {
-                                $scope.hg.addData(params._package.geometry);
-                                if (globals.showHeightgraph) globals.showHeightgraph = true;
-                            } else {
-                                $scope.hg.remove();
-                            }
-                        }
                         break;
                         /** zoom to features */
                     case 0:
@@ -1241,9 +872,6 @@ angular.module('orsApp').directive('orsMap', () => {
                         break;
                     case 7:
                         $scope.clearFeaturegroup(params._package);
-                        break;
-                    case 10:
-                        $scope.addLocations(params._package);
                         break;
                     case 11:
                         $scope.highlightPoi(params._package);
@@ -1359,4 +987,28 @@ angular.module('orsApp').directive('orsSignupBox', ['$translate', ($translate) =
             scope.show = true;
         }
     };
+}]);
+angular.module('orsApp').directive('orsDisasterList', ['$compile', '$timeout', 'orsSettingsFactory', ($compile, $timeout, orsSettingsFactory) => {
+    return {
+
+        restrict: 'E',
+        template: `
+                <div class="ui form ors-disaster-control">
+                  <div class="grouped fields">
+                    <label>Choose your region:</label>
+                    <div class="field" ng-repeat="area in dors_config">
+                      <div class="ui slider checkbox">
+                        <input type="radio" ng-checked="area.checked" ng-model="selectedRegion.selected" ng-value="area.instance" ng-change="switchRegions()" name="disaster-region">
+                        <label ng-click="switchRegions()">{{area.region}}<br><small><i>{{area.last_updated}}</i></small></label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+`,
+        link: (scope, elem, attr) => {
+
+
+
+        }
+};
 }]);

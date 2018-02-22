@@ -156,6 +156,26 @@ angular.module('orsApp.utils-service', [])
                 cancel: cancel
             };
         };
+        /**
+         * Requests JSON object from dors_config.json file
+         */
+        orsUtilsService.getDorsConfig = () => {
+            var canceller = $q.defer();
+            var cancel = (reason) => {
+                canceller.resolve(reason);
+            };
+            console.log(canceller)
+            var promise = $http.get('/dors_config.json', {
+                timeout: canceller.promise
+            })
+                .then((response) => {
+                    return response.data;
+                });
+            return {
+                promise: promise,
+                cancel: cancel
+            };
+        };
         /** 
          * generates object for request and serializes it to http parameters   
          * @param {Object} settings: route settings object
@@ -175,7 +195,7 @@ angular.module('orsApp.utils-service', [])
                 units: 'm',
                 attributes: 'detourfactor|percentage',
                 instructions_format: 'html',
-                elevation: lists.profiles[settings.profile.type].elevation,
+                elevation: true/*lists.profiles[settings.profile.type].elevation*/,
                 options: JSON.stringify(orsUtilsService.generateOptions(settings))
             };
             // remove options if empty
