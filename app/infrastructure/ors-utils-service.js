@@ -164,8 +164,7 @@ angular.module('orsApp.utils-service', [])
             var cancel = (reason) => {
                 canceller.resolve(reason);
             };
-            console.log(canceller)
-            var promise = $http.get('/dors_config.json', {
+            var promise = $http.get('https://disaster-api.openrouteservice.org/dors_config.json', {
                 timeout: canceller.promise
             })
                 .then((response) => {

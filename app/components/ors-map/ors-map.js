@@ -63,10 +63,9 @@ angular.module('orsApp').directive('orsMap', () => {
                 layerDisasterBoundaries: L.featureGroup()
             };
 
-
             const request = orsUtilsService.getDorsConfig();
-            request.promise.then(function(response) {
-                $scope.dors_config = response;
+            request.promise.then(function(data) {
+                $scope.dors_config = data;
                 let i = 0;
                 angular.forEach($scope.dors_config, function(value, key){
                     if (i === 0) {
@@ -88,8 +87,8 @@ angular.module('orsApp').directive('orsMap', () => {
                 $scope.orsMap.fitBounds(L.geoJSON($scope.dors_config[$scope.selectedRegion.selected].geojson).getBounds());
                 dArea.addTo($scope.geofeatures.layerDisasterBoundaries);
                 $scope.mapModel.map.addControl($scope.disasterSwitcher);
-            }, function(response) {
-                console.error(response);
+            }, function(data) {
+                console.error(data);
             });
 
             $scope.mapModel = {
@@ -364,9 +363,6 @@ angular.module('orsApp').directive('orsMap', () => {
             $scope.mapModel.map.on('moveend', (e) => {
                 $scope.setMapOptions();
             });
-            // $scope.mapModel.map.on('mouseover', (e) => {
-            //     console.log(true);
-            // });
             $scope.setMapOptions = () => {
                 const mapCenter = $scope.mapModel.map.getCenter();
                 const mapZoom = $scope.mapModel.map.getZoom();
@@ -1004,11 +1000,7 @@ angular.module('orsApp').directive('orsDisasterList', ['$compile', '$timeout', '
                     </div>
                   </div>
                 </div>
-`,
-        link: (scope, elem, attr) => {
-
-
-
-        }
-};
+        `,
+        link: (scope, elem, attr) => {}
+    };
 }]);
