@@ -655,7 +655,7 @@ angular.module('orsApp')
                 return {
                     "fillColor": "#000",
                     "opacity": 0.0,
-                    "fillOpacity": 0.6
+                    "fillOpacity": 0.3
                 };
             }
         },
