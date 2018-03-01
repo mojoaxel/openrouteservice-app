@@ -84,25 +84,5 @@ angular.module('orsApp').constant('orsNamespaces', {
     layerBkgTopPlus: {
         GetCapabilities: 'http://sg.geodatenzentrum.de/wms_topplus_web_open?request=GetCapabilities&service=wms',
         url: 'http://sg.geodatenzentrum.de/wms_topplus_web_open?'
-    },
-    disasterServicesRouting: {
-        "disaster1": {
-            routing: 'https://disaster-api.openrouteservice.org/disaster1/routes',
-            geocoding: 'https://disaster-api.openrouteservice.org/disaster1/geocode',
-            isochrones: 'https://disaster-api.openrouteservice.org/disaster1/isochrones',
-            places: 'https://disaster-api.openrouteservice.org/disaster1/locations'
-        },
-        "disaster2": {
-            routing: 'https://disaster-api.openrouteservice.org/disaster2/routes',
-            geocoding: 'https://disaster-api.openrouteservice.org/disaster2/geocode',
-            isochrones: 'https://disaster-api.openrouteservice.org/disaster2/isochrones',
-            places: 'https://disaster-api.openrouteservice.org/disaster2/locations'
-        },
-        "disaster3": {
-            routing: 'https://disaster-api.openrouteservice.org/disaster3/routes',
-            geocoding: 'https://disaster-api.openrouteservice.org/disaster3/geocode',
-            isochrones: 'https://disaster-api.openrouteservice.org/disaster3/isochrones',
-            places: 'https://disaster-api.openrouteservice.org/disaster3/locations'
-        }
     }
 });

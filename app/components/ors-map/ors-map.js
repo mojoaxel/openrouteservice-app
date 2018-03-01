@@ -78,6 +78,9 @@ angular.module('orsApp').directive('orsMap', () => {
                 $scope.selectedRegion = {
                     selected: $scope.dors_config[Object.keys($scope.dors_config)[0]].instance
                 };
+
+                const instance = $scope.selectedRegion.selected;
+                orsUtilsService.setDorsLink(instance);
                 let dArea = L.geoJSON($scope.dors_config[$scope.selectedRegion.selected].geojson, {
                     invert: true,
                     worldLatLngs: [L.latLng([85, 360]), L.latLng([85, -360]), L.latLng([-85, -360]), L.latLng([-85, 360])],
@@ -114,19 +117,16 @@ angular.module('orsApp').directive('orsMap', () => {
                 position: 'bottomright'
             });
             $scope.switchRegions = () => {
-                const region = $scope.selectedRegion.selected;
+                const instance = $scope.selectedRegion.selected;
                 $scope.geofeatures.layerDisasterBoundaries.clearLayers();
-                let dArea = L.geoJSON($scope.dors_config[region].geojson, {
+                let dArea = L.geoJSON($scope.dors_config[instance].geojson, {
                     invert: true,
                     style: lists.layerStyles.boundary()
                 });
                 dArea.addTo($scope.geofeatures.layerDisasterBoundaries);
-
-                ENV.geocoding = orsNamespaces.disasterServicesRouting[region].geocoding; //for address search requests
-                ENV.routing = orsNamespaces.disasterServicesRouting[region].routing; //for routing requests
-                ENV.analyse = orsNamespaces.disasterServicesRouting[region].isochrones; //for accessibility analysis requests
+                orsUtilsService.setDorsLink(instance);
                 $scope.orsMap.setMaxBounds(L.geoJSON($scope.dors_config[$scope.selectedRegion.selected].geojson).getBounds());
-                $scope.orsMap.fitBounds(L.geoJSON($scope.dors_config[region].geojson).getBounds());
+                $scope.orsMap.fitBounds(L.geoJSON($scope.dors_config[instance].geojson).getBounds());
             };
             $scope.disasterSwitcher.onAdd = function(map) {
                 var div = $compile('<ors-disaster-list></ors-disaster-list>')($scope)[0];
@@ -203,6 +203,7 @@ angular.module('orsApp').directive('orsMap', () => {
                         //     if (!$scope.smallScreen) $scope.mapModel.map.addControl($scope.welcomeMsgBox);
                         // }, 500);
                     }
+
                 }
                 mapInitSubject.dispose();
             });
@@ -261,7 +262,7 @@ angular.module('orsApp').directive('orsMap', () => {
                 orsSettingsFactory.setAvoidableAreas(avoidPolygons);
             };
             const shapeDrawn = function(e) {
-                $scope.layerControls.addOverlay($scope.geofeatures.layerAvoid, 'Avoidable regions');
+                // $scope.layerControls.addOverlay($scope.geofeatures.layerAvoid, 'Avoidable regions');
                 setSettings();
             };
             $scope.baseLayers = {
@@ -277,7 +278,7 @@ angular.module('orsApp').directive('orsMap', () => {
                 "Hillshade": hillshade
             };
             $scope.mapModel.map.on("load", (evt) => {
-                // add mapstyle 
+                // add mapstyle
                 angular.forEach($scope.baseLayers, (value, key) => {
                     if (value.options.id == $scope.mapStyleId) {
                         $scope.baseLayers[key].addTo($scope.orsMap);
@@ -373,7 +374,7 @@ angular.module('orsApp').directive('orsMap', () => {
                     msi: $scope.mapStyleId
                 };
                 orsCookiesFactory.setMapOptions(mapOptions);
-                // update permalink 
+                // update permalink
                 let userOptions = orsSettingsFactory.getUserOptions();
                 userOptions.lat = mapCenter.lat;
                 userOptions.lng = mapCenter.lng;
@@ -516,7 +517,7 @@ angular.module('orsApp').directive('orsMap', () => {
                     })).getBounds());
                 }
             };
-            /** 
+            /**
              * Highlights marker on map
              * @param {Object} actionPackage - The action actionPackage
              */
@@ -554,8 +555,8 @@ angular.module('orsApp').directive('orsMap', () => {
                 }).addTo($scope.mapModel.geofeatures[actionPackage.layerCode]);
                 polyLine.setStyle(actionPackage.style);
             };
-            /** 
-             * adds interactive route 
+            /**
+             * adds interactive route
              * @param {Object} actionPackage - The action actionPackage
              */
             $scope.addPolyline = (actionPackage) => {
@@ -631,8 +632,8 @@ angular.module('orsApp').directive('orsMap', () => {
                     $scope.addHoverPoint($scope.mapModel, $scope.hoverPolyLine, $scope.pointList, e.latlng);
                 });
             };
-            /** 
-             * adds interactive point over a polyLine 
+            /**
+             * adds interactive point over a polyLine
              * @param {Object} e - The event
              */
             $scope.addHoverPoint = (mapModel, hoverPolyLine, pointList, latlng) => {
@@ -674,14 +675,14 @@ angular.module('orsApp').directive('orsMap', () => {
                 });
             };
             /**
-             * adds numbered marker if not yet added 
+             * adds numbered marker if not yet added
              * @param {Object} actionPackage - The action actionPackage
              */
             $scope.addIsochronesMarker = (actionPackage) => {
                 $scope.addNumberedMarker(actionPackage.geometry, actionPackage.featureId, actionPackage.layerCode, true);
             };
             /**
-             * adds numbered marker if not yet added 
+             * adds numbered marker if not yet added
              * @param {Object} actionPackage - The action actionPackage
              */
             $scope.toggleIsochronesMarker = (actionPackage) => {
@@ -763,7 +764,7 @@ angular.module('orsApp').directive('orsMap', () => {
                     }
                 }
             };
-            /** 
+            /**
              * clears layer entirely or specific layer in layer
              */
             $scope.clear = (actionPackage) => {
@@ -777,7 +778,7 @@ angular.module('orsApp').directive('orsMap', () => {
                     $scope.mapModel.geofeatures[actionPackage.layerCode].clearLayers();
                 }
             };
-            /** 
+            /**
              * clears featuregroup layer and checks for layers inside with specific index
              */
             $scope.clearFeaturegroup = (actionPackage) => {
@@ -821,7 +822,7 @@ angular.module('orsApp').directive('orsMap', () => {
                 $scope.mapModel.map.closePopup();
                 const lngLatString = orsUtilsService.parseLngLatString(pos);
                 const latLngString = orsUtilsService.parseLatLngString(pos);
-                // get the information of the rightclick location 
+                // get the information of the rightclick location
                 const payload = orsUtilsService.geocodingPayload(lngLatString, true);
                 const request = orsRequestService.geocode(payload);
                 request.promise.then((data) => {

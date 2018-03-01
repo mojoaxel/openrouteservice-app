@@ -175,6 +175,14 @@ angular.module('orsApp.utils-service', [])
                 cancel: cancel
             };
         };
+
+        orsUtilsService.setDorsLink = (instance) => {
+            var link = 'https://disaster-api.openrouteservice.org/' + instance;
+            ENV.routing = link + '/routes';
+            ENV.geocoding = link + '/geocode';
+            ENV.isochrones = link + '/isochrones';
+            ENV.places = link + '/locations';
+        }
         /** 
          * generates object for request and serializes it to http parameters   
          * @param {Object} settings: route settings object
