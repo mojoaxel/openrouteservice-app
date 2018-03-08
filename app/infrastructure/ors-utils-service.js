@@ -182,6 +182,7 @@ angular.module('orsApp.utils-service', [])
             ENV.geocoding = link + '/geocode';
             ENV.isochrones = link + '/isochrones';
             ENV.places = link + '/locations';
+            ENV.analyse =  link + '/isochrones';
         }
         /** 
          * generates object for request and serializes it to http parameters   
