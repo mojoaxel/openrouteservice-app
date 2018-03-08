@@ -180,9 +180,8 @@ angular.module('orsApp.utils-service', [])
             var link = 'https://disaster-api.openrouteservice.org/' + instance;
             ENV.routing = link + '/routes';
             ENV.geocoding = link + '/geocode';
-            ENV.isochrones = link + '/isochrones';
+            ENV.analyse = link + '/isochrones';
             ENV.places = link + '/locations';
-            ENV.analyse =  link + '/isochrones';
         }
         /** 
          * generates object for request and serializes it to http parameters   
