@@ -45,8 +45,17 @@ angular.module('orsApp').directive('orsMap', () => {
                 format: 'image/png',
                 opacity: 0.45,
                 transparent: true,
-                attribution: '<a href="http://srtm.csi.cgiar.org/">SRTM</a>; ASTER GDEM is a product of <a href="http://www.meti.go.jp/english/press/data/20090626_03.html">METI</a> and <a href="https://lpdaac.usgs.gov/products/aster_policies">NASA</a>',
+                attribution: '<a href="http://srtm.csi.cgiar.org/">SRTM</a>; ASTER GDEM is a product of <a href="http://www.meti.go.jp/english/press/data/20090626_03.html">METI</a> and <a href="https://lpdaac.usgs.gov/products/aster_policies">NASA</a>'
             });
+            const floodextent = L.tileLayer.wms(orsNamespaces.overlayFloodextent.url, {
+                format: 'image/png',
+                opacity: 0.45,
+                transparent: true,
+                layers: 'moz_idai_flooding',
+                styles: 'flooding',
+                attribution: orsNamespaces.layerMapSurfer.attribution
+            });
+
             $scope.geofeatures = {
                 layerLocationMarker: L.featureGroup(),
                 layerRoutePoints: L.featureGroup(),
@@ -275,7 +284,8 @@ angular.module('orsApp').directive('orsMap', () => {
                 "Outdoors": outdoors
             };
             $scope.overlays = {
-                "Hillshade": hillshade
+                "Hillshade": hillshade,
+                "Copernicus EMS [348]: flood extent" : floodextent
             };
             $scope.mapModel.map.on("load", (evt) => {
                 // add mapstyle
@@ -985,6 +995,7 @@ angular.module('orsApp').directive('orsSignupBox', ['$translate', ($translate) =
         }
     };
 }]);
+
 angular.module('orsApp').directive('orsDisasterList', ['$compile', '$timeout', 'orsSettingsFactory', ($compile, $timeout, orsSettingsFactory) => {
     return {
 

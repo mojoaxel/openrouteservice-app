@@ -48,11 +48,11 @@ angular.module('orsApp').constant('orsNamespaces', {
      */
     //url to Open Map Surfer layer
     layerMapSurfer: {
-        url: 'https://korona.geog.uni-heidelberg.de/tiles/roads/x={x}&y={y}&z={z}',
+        url: 'https://maps.heigit.org/openmapsurfer/tiles/roads/webmercator/{z}/{x}/{y}.png',
         attribution: 'Map data &copy; <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, powered by <a href="http://mapsurfernet.com/">MapSurfer.NET</a>'
     },
     //url to hillshade overlay
-    layerHs: 'https://korona.geog.uni-heidelberg.de/tiles/asterh/x={x}&y={y}&z={z}',
+   // layerHs: 'https://korona.geog.uni-heidelberg.de/tiles/asterh/x={x}&y={y}&z={z}',
     //url to OSM layer
     layerOSM: {
         url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -79,10 +79,19 @@ angular.module('orsApp').constant('orsNamespaces', {
         attribution: 'Map data &copy; <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors'
     },
     overlayHillshade: {
-        url: 'https://korona.geog.uni-heidelberg.de/tiles/asterh/x={x}&y={y}&z={z}'
+        url: 'https://maps.heigit.org/openmapsurfer/tiles/asterh/webmercator/{z}/{x}/{y}.png'
     },
     layerBkgTopPlus: {
         GetCapabilities: 'http://sg.geodatenzentrum.de/wms_topplus_web_open?request=GetCapabilities&service=wms',
         url: 'http://sg.geodatenzentrum.de/wms_topplus_web_open?'
+    },
+    overlayFloodextent: {
+        GetCapabilities: 'https://maps.heigit.org/geoserver/dors/wms?REQUEST=GetCapabilities&service=wms',
+        url: 'https://maps.heigit.org/geoserver/dors/wms?'
+        attribution: '<a href="http://srtm.csi.cgiar.org/">SRTM</a>; ASTER GDEM is a product of <a href="http://www.meti.go.jp/english/press/data/20090626_03.html">METI</a> and <a href="https://lpdaac.usgs.gov/products/aster_policies">NASA</a>' 
+    },
+    overlayElementsatrisk: {
+        GetCapabilities: 'https://maps.heigit.org/openmapsurfer/tiles/elements_at_risk/webmercator/{z}/{x}/{y}.png',
+        attribution: 'Flood extents: <a href="https://emergency.copernicus.eu/mapping/list-of-components/EMSR348">[EMSR348] Cyclon Idai in Mozambique</a>; Copernicus Emergency Management Service (© 2015 European Union)',
     }
 });
