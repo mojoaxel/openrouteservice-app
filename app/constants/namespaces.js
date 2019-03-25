@@ -87,7 +87,7 @@ angular.module('orsApp').constant('orsNamespaces', {
     },
     overlayFloodextent: {
         GetCapabilities: 'https://maps.heigit.org/geoserver/dors/wms?REQUEST=GetCapabilities&service=wms',
-        url: 'https://maps.heigit.org/geoserver/dors/wms?'
+        url: 'https://maps.heigit.org/geoserver/dors/wms?',
         attribution: '<a href="http://srtm.csi.cgiar.org/">SRTM</a>; ASTER GDEM is a product of <a href="http://www.meti.go.jp/english/press/data/20090626_03.html">METI</a> and <a href="https://lpdaac.usgs.gov/products/aster_policies">NASA</a>' 
     },
     overlayElementsatrisk: {
