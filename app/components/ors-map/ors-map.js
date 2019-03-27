@@ -10,6 +10,7 @@ angular.module("orsApp").directive("orsMap", () => {
       "$scope",
       "$filter",
       "$compile",
+      "$injector",
       "$timeout",
       "$window",
       "orsSettingsFactory",
@@ -27,6 +28,7 @@ angular.module("orsApp").directive("orsMap", () => {
         $scope,
         $filter,
         $compile,
+        $injector,
         $timeout,
         $window,
         orsSettingsFactory,
@@ -98,7 +100,6 @@ angular.module("orsApp").directive("orsMap", () => {
             attribution: orsNamespaces.layerMapSurfer.attribution
           }
         );
-
         $scope.geofeatures = {
           layerLocationMarker: L.featureGroup(),
           layerRoutePoints: L.featureGroup(),
@@ -112,9 +113,37 @@ angular.module("orsApp").directive("orsMap", () => {
           layerRouteExtras: L.featureGroup(),
           layerRouteDrag: L.featureGroup(),
           layerTmcMarker: L.featureGroup(),
-          layerDisasterBoundaries: L.featureGroup()
+          layerDisasterBoundaries: L.featureGroup(),
+          layerFloodExtent: L.featureGroup()
         };
 
+        floodextent.addTo($scope.geofeatures.layerFloodExtent);
+
+        const httpService = $injector.get("$http");
+        httpService.get("floodedAreas.json").then(
+            (response) => {
+                let popupContent = (feature) => {
+                    return `<div style="margin: 10px"><b><a href=${feature.properties.url} target="_blank">${feature.properties.name.split("-")[0]}</a></b><br>imagery date: ${feature.properties["imagery date"]}</div>`;
+                };
+                let floodedAreas = L.geoJSON(
+                    response.data,
+                    {
+                      onEachFeature: (feature, layer) => {
+                          layer.bindPopup(popupContent(feature));
+                      },
+                      style: lists.layerStyles.floodedAreas()
+                    }
+                );
+                $scope.floodBounds = floodedAreas.getBounds()
+                floodedAreas.addTo($scope.geofeatures.layerFloodExtent);
+            },
+            (errorResponse) => {
+                console.log(errorResponse);
+            }
+        );
+        $scope.zoomToFlood = () => {
+          $scope.orsMap.fitBounds($scope.floodBounds);
+        };
         const request = orsUtilsService.getDorsConfig();
         request.promise.then(
           function(data) {
@@ -153,11 +182,7 @@ angular.module("orsApp").directive("orsMap", () => {
                 $scope.dors_config[$scope.selectedRegion.selected].geojson
               ).getBounds()
             );
-            $scope.orsMap.fitBounds(
-              L.geoJSON(
-                $scope.dors_config[$scope.selectedRegion.selected].geojson
-              ).getBounds()
-            );
+            $scope.zoomToFlood();
             dArea.addTo($scope.geofeatures.layerDisasterBoundaries);
             $scope.mapModel.map.addControl($scope.disasterSwitcher);
           },
@@ -306,14 +331,23 @@ angular.module("orsApp").directive("orsMap", () => {
                   )[0];
                   return div;
                 };
-                // $timeout(function() {
-                //     if (!$scope.smallScreen) $scope.mapModel.map.addControl($scope.welcomeMsgBox);
-                // }, 500);
               }
             }
             mapInitSubject.dispose();
           }
         );
+        $scope.floodMsgBox = L.control({
+            position: "topright"
+        });
+        $scope.floodMsgBox.onAdd = function(map) {
+            let div = $compile("<ors-flood-box></ors-flood-box>")(
+                $scope
+            )[0];
+            return div;
+        };
+        $timeout( () => {
+            if (!$scope.smallScreen) $scope.mapModel.map.addControl($scope.floodMsgBox);
+        }, 100);
         // sign up for API
         $scope.signupBox = L.control({
           position: "topleft"
@@ -402,7 +436,7 @@ angular.module("orsApp").directive("orsMap", () => {
         };
         $scope.overlays = {
           Hillshade: hillshade,
-          "Copernicus EMS [348]: flood extent": floodextent
+          "Copernicus EMS: flood extent": $scope.geofeatures.layerFloodExtent
         };
         $scope.mapModel.map.on("load", evt => {
           // add mapstyle
@@ -433,6 +467,7 @@ angular.module("orsApp").directive("orsMap", () => {
             $scope.mapModel.map
           );
           $scope.mapModel.geofeatures.layerRouteDrag.addTo($scope.mapModel.map);
+          $scope.mapModel.geofeatures.layerFloodExtent.addTo($scope.mapModel.map);
           $scope.mapModel.geofeatures.layerDisasterBoundaries.addTo(
             $scope.mapModel.map
           );
@@ -1335,6 +1370,28 @@ angular.module("orsApp").directive("orsWelcomeBox", [
             </div>
             <div class="list">
                 <span ng-bind-html="('WELCOME_MESSAGE' | translate)">
+                </span>
+            </div>
+        </div>`,
+      link: (scope, elem, attr) => {
+        scope.show = true;
+      }
+    };
+  }
+]);
+angular.module("orsApp").directive("orsFloodBox", [
+  "$translate",
+  $translate => {
+    return {
+      restrict: "E",
+      template: `<div ng-attr-class="{{ 'ui message ors-map-message fade red' }}" ng-show="show">
+            <i class="fa fa-close flright" data-ng-click="show = !show"></i>
+            <div class="header" ng-bind-html="'Cyclone Idai Response'">
+            </div>
+            <div class="list">
+                <span>
+                    Latest flood extents of the <a style="color: red;" href=https://emergency.copernicus.eu/mapping/list-of-activations-rapid target="_blank">Copernicus EMS</a> integrated as overlay!
+                    Use the avoid polygon tool to draw polygons and avoid flooded areas.
                 </span>
             </div>
         </div>`,

@@ -106,12 +106,10 @@ angular.module("orsApp").constant("orsNamespaces", {
       "https://maps.heigit.org/geoserver/dors/wms?REQUEST=GetCapabilities&service=wms",
     url: "https://maps.heigit.org/geoserver/dors/wms?",
     attribution:
-      '<a href="http://srtm.csi.cgiar.org/">SRTM</a>; ASTER GDEM is a product of <a href="http://www.meti.go.jp/english/press/data/20090626_03.html">METI</a> and <a href="https://lpdaac.usgs.gov/products/aster_policies">NASA</a>'
+      'Flood extents: <a href="https://emergency.copernicus.eu/mapping/list-of-components/EMSR348">[EMSR348] Cyclon Idai in Mozambique</a>; Copernicus Emergency Management Service (© 2015 European Union)'
   },
   overlayElementsatrisk: {
     GetCapabilities:
-      "https://maps.heigit.org/openmapsurfer/tiles/elements_at_risk/webmercator/{z}/{x}/{y}.png",
-    attribution:
-      'Flood extents: <a href="https://emergency.copernicus.eu/mapping/list-of-components/EMSR348">[EMSR348] Cyclon Idai in Mozambique</a>; Copernicus Emergency Management Service (© 2015 European Union)'
+      "https://maps.heigit.org/openmapsurfer/tiles/elements_at_risk/webmercator/{z}/{x}/{y}.png"
   }
 });

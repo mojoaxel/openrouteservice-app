@@ -832,6 +832,13 @@ angular.module("orsApp").constant("lists", {
         opacity: 0.0,
         fillOpacity: 0.3
       };
+    },
+    floodedAreas: () => {
+      return {
+        fill: false,
+        color: "#cf5f5f",
+        opacity: 0.5
+      };
     }
   },
   isochronesColorsRanges: [360, 300, 240, 180, 120, 60],
