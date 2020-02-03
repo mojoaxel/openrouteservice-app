@@ -231,5 +231,8 @@
     "ROUNDTRIP_NEXT": "Nächster Rundweg",
     "ROUNDTRIP": "Rundweg (experimentell)",
     "ROUNDTRIP_DO": "Rundweg generieren",
-    "PACE_SPEED_INKMH": "Pace in km/h"
+    "PACE_SPEED_INKMH": "Pace in km/h",
+    "TIME_DEPART_AT": "Abfahrt ab",
+    "TIME_LEAVE_NOW": "Jetzt starten",
+    "TIME_ARRIVE_BY": "Ankunft bis"
 }

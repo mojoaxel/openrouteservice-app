@@ -19,6 +19,7 @@
     "@turf/line-distance": "^3.13.0",
     "@turf/simplify": "^3.13.0",
     "@turf/within": "^3.13.0",
+    "angular-moment-picker": "^0.10.2",
     "browserify": "^14.1.0",
     "core-js": "2.4.0",
     "d3": "^5.12.0",
