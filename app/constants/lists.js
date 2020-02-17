@@ -639,7 +639,7 @@ angular.module("orsApp").constant("lists", {
   layerStyles: {
     route: function() {
       return {
-        color: "#b5152b",
+        color: "#36A060",
         weight: 5,
         opacity: 1
       };

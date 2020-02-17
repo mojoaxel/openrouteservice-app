@@ -68,23 +68,23 @@ angular.module("orsApp").directive("orsMap", () => {
           minZoom: orsNamespaces.layerMapSurfer.minZoom,
           maxZoom: orsNamespaces.layerMapSurfer.maxZoom
         });
-        const bkgtopplus = L.tileLayer.wms(orsNamespaces.layerBkgTopPlus.url, {
-          layers: "web",
-          format: "image/png",
-          attribution:
-            '© <a href="http://www.bkg.bund.de">Bundesamt für Kartographie und Geodäsie</a> 2017, <a href="https://sgx.geodatenzentrum.de/web_public/Datenquellen_TopPlus_Open.pdf">Datenquellen</a>',
-          id: 1
-        });
-        const bkgtopplusgrey = L.tileLayer.wms(
-          orsNamespaces.layerBkgTopPlus.url,
-          {
-            layers: "web_grau",
-            format: "image/png",
-            attribution:
-              '© <a href="http://www.bkg.bund.de">Bundesamt für Kartographie und Geodäsie</a> 2017, <a href="https://sgx.geodatenzentrum.de/web_public/Datenquellen_TopPlus_Open.pdf">Datenquellen</a>',
-            id: 2
-          }
-        );
+        // const bkgtopplus = L.tileLayer.wms(orsNamespaces.layerBkgTopPlus.url, {
+        //   layers: "web",
+        //   format: "image/png",
+        //   attribution:
+        //     '© <a href="http://www.bkg.bund.de">Bundesamt für Kartographie und Geodäsie</a> 2017, <a href="https://sgx.geodatenzentrum.de/web_public/Datenquellen_TopPlus_Open.pdf">Datenquellen</a>',
+        //   id: 1
+        // });
+        // const bkgtopplusgrey = L.tileLayer.wms(
+        //   orsNamespaces.layerBkgTopPlus.url,
+        //   {
+        //     layers: "web_grau",
+        //     format: "image/png",
+        //     attribution:
+        //       '© <a href="http://www.bkg.bund.de">Bundesamt für Kartographie und Geodäsie</a> 2017, <a href="https://sgx.geodatenzentrum.de/web_public/Datenquellen_TopPlus_Open.pdf">Datenquellen</a>',
+        //     id: 2
+        //   }
+        // );
         const openstreetmap = L.tileLayer(orsNamespaces.layerOSM.url, {
           attribution: orsNamespaces.layerOSM.attribution,
           id: 3
@@ -93,13 +93,19 @@ angular.module("orsApp").directive("orsMap", () => {
           attribution: orsNamespaces.layerOSMCycle.attribution,
           id: 4
         });
-        const transportdark = L.tileLayer(orsNamespaces.layerOSMDark.url, {
-          attribution: orsNamespaces.layerOSMDark.attribution,
-          id: 5
-        });
-        const outdoors = L.tileLayer(orsNamespaces.layerOutdoors.url, {
-          attribution: orsNamespaces.layerOutdoors.attribution,
-          id: 6
+        // const transportdark = L.tileLayer(orsNamespaces.layerOSMDark.url, {
+        //   attribution: orsNamespaces.layerOSMDark.attribution,
+        //   id: 5
+        // });
+        // const outdoors = L.tileLayer(orsNamespaces.layerOutdoors.url, {
+        //   attribution: orsNamespaces.layerOutdoors.attribution,
+        //   id: 6
+        // });
+        const cartoDB = L.tileLayer(orsNamespaces.layerCartoDB.url, {
+          attribution: orsNamespaces.layerCartoDB.attribution,
+          subdomains: "abcd",
+          maxZoom: 19,
+          id: 7
         });
         // const stamen = L.tileLayer(orsNamespaces.layerStamen.url, {
         //     attribution: orsNamespaces.layerStamen.attribution,
@@ -359,8 +365,8 @@ angular.module("orsApp").directive("orsMap", () => {
                 settings.zoom
               );
             } else {
-              // Heidelberg
-              $scope.orsMap.setView([49.409445, 8.692953], 13);
+              // Fürth
+              $scope.orsMap.setView([49.476267, 10.985556], 13);
               if (orsCookiesFactory.getMapOptions()) {
                 // Welcome box
                 $scope.welcomeMsgBox = L.control({
@@ -399,7 +405,10 @@ angular.module("orsApp").directive("orsMap", () => {
         });
         $scope.brand.onAdd = function(map) {
           var divs = L.DomUtil.create("div", "ors-brand-small");
-          divs.innerHTML = '<img src="img/brand.png">';
+          divs.innerHTML = [
+            '<img src="img/brand.png">',
+            '<img src="img/fullstax.png">'
+          ].join("<br>");
           return divs;
         };
         $timeout(function() {
@@ -460,12 +469,13 @@ angular.module("orsApp").directive("orsMap", () => {
         };
         $scope.baseLayers = {
           OpenMapSurfer: mapsurfer,
-          "TopPlus-Web-Open": bkgtopplus,
-          "TopPlus-Web-Open Greyscale": bkgtopplusgrey,
+          //"TopPlus-Web-Open": bkgtopplus,
+          //"TopPlus-Web-Open Greyscale": bkgtopplusgrey,
+          CartoDB: cartoDB,
           OpenStreetMap: openstreetmap,
-          OpenCycleMap: opencyclemap,
-          "Transport Dark": transportdark,
-          Outdoors: outdoors
+          OpenCycleMap: opencyclemap
+          //"Transport Dark": transportdark,
+          //Outdoors: outdoors
         };
         $scope.overlays = {
           // "Hillshade": hillshade
@@ -2020,6 +2030,7 @@ angular.module("orsApp").directive("orsRoutePointPopup", [
     };
   }
 ]);
+/*
 angular.module("orsApp").directive("orsWelcomeBox", [
   "$translate",
   $translate => {
@@ -2040,6 +2051,8 @@ angular.module("orsApp").directive("orsWelcomeBox", [
     };
   }
 ]);
+*/
+/*
 angular.module("orsApp").directive("orsSignupBox", [
   "$translate",
   $translate => {
@@ -2060,3 +2073,4 @@ angular.module("orsApp").directive("orsSignupBox", [
     };
   }
 ]);
+*/
