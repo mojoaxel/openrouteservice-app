@@ -408,7 +408,7 @@ angular.module("orsApp").directive("orsMap", () => {
           divs.innerHTML = [
             '<img src="img/brand.png">',
             '<img src="img/fullstax.png">'
-          ].joun("<br>");
+          ].join("<br>");
           return divs;
         };
         $timeout(function() {
