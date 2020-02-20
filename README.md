@@ -47,7 +47,7 @@ cd openrouteservice-app
 npm install
 
 # install dependencies listed in bower.json
-node_modules/bower/bin/bower install
+npx bower install
 ```
 
 - Install required modules for slider layout:
@@ -84,13 +84,13 @@ vim app/weathercheck.txt
 
 For the standard openrouteservice version do:
 
-	grunt ors
+	npx grunt ors
 
 If you want to use the openrouteservice client with a [local backend version of openrouteservice](https://github.com/GIScience/openrouteservice) you have to adjust the *endpoint paths* to the *backend war version* you are using in `Grunfile.js`.
 
 Afterwards do:
 
-	grunt ors_local
+	npx grunt ors_local
 
 ## Contribution
 
