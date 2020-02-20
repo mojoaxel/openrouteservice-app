@@ -93,6 +93,13 @@ angular.module("orsApp").directive("orsMap", () => {
           attribution: orsNamespaces.layerOSMCycle.attribution,
           id: 4
         });
+        const opentransportmap = L.tileLayer(
+          orsNamespaces.layerOSMTransport.url,
+          {
+            attribution: orsNamespaces.layerOSMTransport.attribution,
+            id: 5
+          }
+        );
         // const transportdark = L.tileLayer(orsNamespaces.layerOSMDark.url, {
         //   attribution: orsNamespaces.layerOSMDark.attribution,
         //   id: 5
@@ -473,7 +480,8 @@ angular.module("orsApp").directive("orsMap", () => {
           //"TopPlus-Web-Open Greyscale": bkgtopplusgrey,
           CartoDB: cartoDB,
           OpenStreetMap: openstreetmap,
-          OpenCycleMap: opencyclemap
+          OpenCycleMap: opencyclemap,
+          OpenTransportMap: opentransportmap
           //"Transport Dark": transportdark,
           //Outdoors: outdoors
         };

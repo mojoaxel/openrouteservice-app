@@ -70,9 +70,16 @@ angular.module("orsApp").constant("orsNamespaces", {
   //url to OpenCycleMap
   layerOSMCycle: {
     url:
-      "https://{s}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=13efc496ac0b486ea05691c820824f5f",
+      //"https://{s}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=13efc496ac0b486ea05691c820824f5f",
+      "https://{s}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=36abcf8b8faf4805b463531b0f9d7560",
     attribution:
-      'Maps &copy; <a href="https://carto.com/attributions">CARTO</a>, Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      'Maps &copy; <a href="http://thunderforest.com/">Thunderforest</a>, Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  },
+  layerOSMTransport: {
+    url:
+      "https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=36abcf8b8faf4805b463531b0f9d7560",
+    attribution:
+      'Maps &copy; <a href="http://thunderforest.com/">Thunderforest</a>, Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   },
   layerCartoDB: {
     url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
